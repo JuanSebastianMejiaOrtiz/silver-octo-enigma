@@ -1,4 +1,4 @@
-module substraction
+module addition
 #(
     parameter WIDTH = 4
 )
@@ -11,21 +11,27 @@ module substraction
     output logic V,
     output logic C
 );
-    logic [3:0] B_compA2;
-    assign B_compA2 = ~B + 4'b0001;
+    logic carry;
 
-    addition u_addition(
-        .A(A),
-        .B(B_compA2),
-        .out(out),
-        .N(N),
-        .Z(Z),
-        .V(V),
-        .C(C)
-    );
+    assign {carry, out} = A + B;
+    assign C = carry;
+    assign V = A[3]&B[3]&~out[3] | ~A[3]&~B[3]&out[3];
+
+    always_comb begin
+        if(out == 0) begin
+            Z = 1'b1;
+        end else begin
+            Z = 1'b0;
+        end
+        if(out > 4'b1000) begin
+            N = 1'b1;
+        end else begin
+            N = 1'b0;
+        end
+    end
 endmodule
 
-module substraction_tb();
+module addition_tb();
     localparam delay = 10ns;
 
     logic [3:0] A;
@@ -35,12 +41,11 @@ module substraction_tb();
     logic [4:0] i, j;
 
     logic carry;
-    logic [3:0] B_compA2;
 
     logic [3:0] S_esp;
     logic N_esp, Z_esp, V_esp, C_esp;
 
-    substraction u_substraction(
+    addition u_addition(
         .A(A),
         .B(B),
         .out(S),
@@ -74,11 +79,9 @@ module substraction_tb();
     end
 
     always_comb begin
-        B_compA2 = ~B + 4'b0001;
-
-        {carry, S_esp} = A + B_compA2;
+        {carry, S_esp} = A + B;
         C_esp = carry;
-        V_esp = A[3]&B_compA2[3]&~S_esp[3] | ~A[3]&~B_compA2[3]&S_esp[3];
+        V_esp = A[3]&B[3]&~S_esp[3] | ~A[3]&~B[3]&S_esp[3];
 
         if(S_esp == 0) begin
             Z_esp = 1'b1;
@@ -92,4 +95,3 @@ module substraction_tb();
         end
     end
 endmodule
-
