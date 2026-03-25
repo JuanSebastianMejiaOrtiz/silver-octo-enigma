@@ -10,5 +10,17 @@ module b_decreaser
     output logic V,
     output logic C
 )
-    assign out = B - 1;
+    subtraction u_subtraction
+    #(
+        .WIDTH(WIDTH)
+    )
+    (
+        .A(B),
+        .B(1'b1),
+        .out(out),
+        .N(N),
+        .Z(Z),
+        .V(V),
+        .C(C)
+    );
 endmodule

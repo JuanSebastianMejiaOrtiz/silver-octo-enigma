@@ -15,20 +15,9 @@ module addition
 
     assign {carry, out} = A + B;
     assign C = carry;
-    assign V = A[3]&B[3]&~out[3] | ~A[3]&~B[3]&out[3];
-
-    always_comb begin
-        if(out == 0) begin
-            Z = 1'b1;
-        end else begin
-            Z = 1'b0;
-        end
-        if(out > 4'b1000) begin
-            N = 1'b1;
-        end else begin
-            N = 1'b0;
-        end
-    end
+    assign V = A[WIDTH-1]&B[WIDTH-1]&~out[WIDTH-1] | ~A[WIDTH-1]&~B[WIDTH-1]&out[WIDTH-1];
+    assign Z = (out == 0);
+    assign N = out[WIDTH-1];
 endmodule
 
 module addition_tb();
@@ -66,6 +55,7 @@ module addition_tb();
             j = 5'b0;
             for (j=0; j <= 15; j++) begin
                 B = j[3:0];
+                #delay;
                 if (S == S_esp) begin
                     $display("OK: S esperado: %h, S salida: %h", S_esp, S);
                 end else begin
@@ -81,17 +71,8 @@ module addition_tb();
     always_comb begin
         {carry, S_esp} = A + B;
         C_esp = carry;
-        V_esp = A[3]&B[3]&~S_esp[3] | ~A[3]&~B[3]&S_esp[3];
-
-        if(S_esp == 0) begin
-            Z_esp = 1'b1;
-        end else begin
-            Z_esp = 1'b0;
-        end
-        if(S_esp > 4'b1000) begin
-            N_esp = 1'b1;
-        end else begin
-            N_esp = 1'b0;
-        end
+        V_esp = A[WIDTH-1]&B[WIDTH-1]&~S_esp[WIDTH-1] | ~A[WIDTH-1]&~B[WIDTH-1]&S_esp[WIDTH-1];
+        Z_esp = (S_esp == 0);
+        N_esp = S_esp[WIDTH-1];
     end
 endmodule

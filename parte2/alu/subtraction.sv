@@ -11,10 +11,14 @@ module substraction
     output logic V,
     output logic C
 );
-    logic [3:0] B_compA2;
-    assign B_compA2 = ~B + 4'b0001;
+    logic [WIDTH-1:0] B_compA2;
+    assign B_compA2 = ~B + 1'b1;
 
-    addition u_addition(
+    addition u_addition
+    #(
+        .WIDTH(WIDTH)
+    )
+    (
         .A(A),
         .B(B_compA2),
         .out(out),
