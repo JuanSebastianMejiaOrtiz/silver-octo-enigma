@@ -1,8 +1,9 @@
-module left_shift_2
+module b_left_shift_2
 #(
     parameter WIDTH = 4
 )
 (
+    input logic [WIDTH-1:0] A,
     input logic [WIDTH-1:0] B,
     output logic [WIDTH-1:0] out,
     output logic N,
