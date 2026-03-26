@@ -5,7 +5,7 @@ module alu
 (
     input logic [WIDTH-1:0] A,
     input logic [WIDTH-1:0] B,
-    input logic [3:0] sel,
+    input logic [2:0] sel,
     output logic [WIDTH-1:0] S,
     output logic N, Z, V, C
 );
