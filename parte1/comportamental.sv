@@ -1,10 +1,10 @@
 module comportamental
 (
-    input logic [2:0] ins,
+    input logic [2:0] in,
     output logic out
 );
     always_comb begin
-        case (ins)
+        case (in)
             3'b000: out = 1'b0;
             3'b010: out = 1'b0;
             3'b011: out = 1'b1;
