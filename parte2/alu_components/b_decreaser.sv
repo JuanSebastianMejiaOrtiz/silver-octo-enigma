@@ -10,12 +10,10 @@ module b_decreaser
     output logic Z,
     output logic V,
     output logic C
-)
-    subtraction u_subtraction
-    #(
+);
+    subtraction #(
         .WIDTH(WIDTH)
-    )
-    (
+    ) u_subtraction (
         .A(B),
         .B(1'b1),
         .out(out),

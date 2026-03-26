@@ -1,4 +1,4 @@
-module substraction
+module subtraction
 #(
     parameter WIDTH = 4
 )
@@ -14,11 +14,9 @@ module substraction
     logic [WIDTH-1:0] B_compA2;
     assign B_compA2 = ~B + 1'b1;
 
-    addition u_addition
-    #(
+    addition #(
         .WIDTH(WIDTH)
-    )
-    (
+    ) u_addition (
         .A(A),
         .B(B_compA2),
         .out(out),

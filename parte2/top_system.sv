@@ -31,7 +31,7 @@ module top_system (
         .V(V)
     );
 
-    Deco u_dec (
+    modulo_dec u_dec (
         .S(S_interno),
         .SEL(SEL),
         .DISP0(DISP0),
