@@ -4,9 +4,9 @@ module mux_inc (input logic [6:0] q,
     always_comb begin
         if (bt1 ^ bt0) begin
             if (bt0) begin
-                q_out = q + 1;
+                q_out = q + 1'b1;
             end else begin
-                q_out = q + 10;
+                q_out = q + 4'b1010;
             end
         end else begin
             q_out = q;

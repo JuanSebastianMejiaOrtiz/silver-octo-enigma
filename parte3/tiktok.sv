@@ -5,10 +5,10 @@ module tiktok(input logic bt1press, bt2press, swt, rst, clkfpga,
     logic [6:0] q;
 
     pulse pulseU_u (
-        .clk(clkfpga), .reset(rst), .pulse(btu)
+        .clk(clkfpga), .reset(rst), .pulse(btu), .d(bt1press)
     );
     pulse pulseD_u (
-        .clk(clkfpga), .reset(rst), .pulse(btd)
+        .clk(clkfpga), .reset(rst), .pulse(btd), .d(bt2press)
     );
     
     cntdiv_n clockDivisor_u (
