@@ -1,7 +1,7 @@
-module tiktok(input logic btpress1, btpress2, swt, rst, clkfpga,
+module tiktok(input logic bt1press, bt2press, swt, rst, clkfpga,
     output logic [6:0] dispU, dispD
 );
-    logic btu, btd, clk;
+    logic btu, btd, clk, flag;
     logic [6:0] q;
 
     pulse pulseU_u (
@@ -16,8 +16,8 @@ module tiktok(input logic btpress1, btpress2, swt, rst, clkfpga,
     );
 
     timer timer_u (
-        .q(q), .clk(clk), .en(en), .rst(rst), .q_out(q),
-        .bt1(btd), .bt0(btu)
+        .q(q), .clk(clk), .en(swt), .rst(rst), .q_out(q),
+        .bt1(btd), .bt0(btu), .flag(flag), .flag_out(flag)
     );
 
     Deco displays_u (

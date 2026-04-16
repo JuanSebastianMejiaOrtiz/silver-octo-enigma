@@ -1,27 +1,34 @@
 module timer(input logic [6:0] q,
-            input logic clk, en, rst, bt1, bt0,
-            output logic [6:0] q_out
+            input logic clk, en, rst, bt1, bt0, flag,
+            output logic [6:0] q_out,
+				output logic flag_out
 );
     logic [6:0] q_inc;
 
     mux_inc u_inc (
         .q(q), .bt1(bt1), .bt0(bt0), .q_out(q_inc)
     );
+	 
+	 assign flag_out = q > 99;
     
     always_ff @(posedge clk) begin
         if (rst) begin
             q_out <= 7'b0;
         end
         else if (en) begin
-            q_out <= q - 1;
-        end else begin
-            q_out <= q_inc;
+            q_out <= q - 1'b1;
         end
+		  else if (flag) begin
+            q_out <= 7'b1100011;
+        end
+		  else begin
+				q_out <= q_inc;
+		  end
     end
 endmodule
 
 module timer_tb();
-    localparam delay = 500ms;
+    localparam delay = 500ns;
 
     logic [6:0] q;
     logic clk, en, rst, bt1, bt0;
