@@ -22,6 +22,7 @@ endmodule
 
 module addition_tb();
     localparam delay = 10ns;
+    localparam WIDTH = 4;
 
     logic [3:0] A;
     logic [3:0] B;
