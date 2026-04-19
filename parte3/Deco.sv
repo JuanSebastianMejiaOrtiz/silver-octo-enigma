@@ -34,8 +34,7 @@ module Deco_tb();
 
     initial begin
         for (q = 0; q < 16; q++) begin
-            $display("Display Unidades %h", dispU);
-            $display("Display Decenas %h", dispD);
+            $display("Display %h", disp);
             #delay;
         end
         $stop;
