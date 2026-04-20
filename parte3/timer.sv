@@ -1,4 +1,4 @@
-module timer(
+module timer #(TOPVAL = 50_000_000) (
     input logic [3:0] qUnits, qTens,
     input logic clk, en, rst, btU, btT,
     output logic [3:0] qOutUnits, qOutTens
@@ -6,7 +6,7 @@ module timer(
     logic [3:0] qDecUnits, qDecTens, qIncUnits, qIncTens;
     logic d, clkdiv, btUPulse, btTPulse;
 
-    cntdiv_n clockDivider_u (
+    cntdiv_n #(.TOPVALUE(TOPVAL)) clockDivider_u (
         .clk(clk), .clkout(clkdiv), .rst(rst)
     );
 
@@ -25,7 +25,7 @@ module timer(
         SErr = 4'b1111
     } states;
 
-    always_ff @(posedge clkdiv) begin
+    always_ff @(posedge clk) begin
         if (rst == 1'b1) begin
             qIncUnits <= S0;
             qIncTens <= S0;
@@ -68,7 +68,7 @@ module timer(
         end
     end
 
-    always_ff @(posedge clk) begin
+    always_ff @(posedge clkdiv) begin
         if (rst) begin
             qDecUnits <= S0;
             qDecTens <= S0;

@@ -1,11 +1,11 @@
-module tiktok(
+module tiktok #(TOPVAL=50_000_000) (
     input logic btU, btT, en, rst, clk,
     output logic [6:0] disp0, disp1,
     output logic led
 );
     logic [3:0] qUnits, qTens;
 
-    timer timer_u (
+    timer #(.TOPVAL(TOPVAL)) timer_u (
         .btT(btT), .btU(btU), .rst(rst), .en(en),
         .qUnits(qUnits), .qTens(qTens),
         .qOutUnits(qUnits), .qTens(qTens)
