@@ -71,6 +71,11 @@ module timer #(parameter TOPVAL = 50_000_000) (
         end
     end
 
+    // TODO: Fix
+    // Arreglar esto para que reste como deberia de ser bien
+    // Esta restando las decenas a la vez y ademas esta de pronto haciendo mas
+    // de una resta a la vez (???)
+    // Mirar a ver cuando se reorganize
     always_ff @(posedge clkdiv) begin
         if (rst) begin
             qDecUnits <= S0;

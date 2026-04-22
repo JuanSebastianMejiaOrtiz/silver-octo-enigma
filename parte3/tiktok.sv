@@ -3,25 +3,23 @@ module tiktok #(parameter TOPVAL=50_000_000) (
     output logic [6:0] disp0, disp1,
     output logic led
 );
-    logic [3:0] qUnits, qTens, q0, q1;
+    logic [3:0] qUnits, qTens;
 
     timer #(.TOPVAL(TOPVAL)) timer_u (
         .btT(btT), .btU(btU), .rst(rst), .en(en), .clk(clk),
         .qUnits(qUnits), .qTens(qTens),
-        .qOutUnits(q0), .qOutTens(q1)
+        .qOutUnits(qUnits), .qOutTens(qTens)
     );
 
     Deco decoDispUnits_u (
-        .S(q0), .DISP(disp0)
+        .S(qUnits), .DISP(disp0)
     );
 
     Deco decoDispTens_u (
-        .S(q1), .DISP(disp1)
+        .S(qTens), .DISP(disp1)
     );
 
     assign led = (qUnits == 4'b0000) & (qTens == 4'b0000);
-    assign qUnits = q0;
-    assign qTens = q1;
 endmodule
 
 module tiktok_tb();
