@@ -1,7 +1,7 @@
 # Top
 tiktok.sv
 timer.sv
+cntdiv_n.sv
 mux_inc.sv
 pulse.sv
-cntdiv_n.sv
 Deco.sv

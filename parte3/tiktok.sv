@@ -1,30 +1,32 @@
-module tiktok #(TOPVAL=50_000_000) (
+module tiktok #(parameter TOPVAL=50_000_000) (
     input logic btU, btT, en, rst, clk,
     output logic [6:0] disp0, disp1,
     output logic led
 );
-    logic [3:0] qUnits, qTens;
+    logic [3:0] qUnits, qTens, q0, q1;
 
     timer #(.TOPVAL(TOPVAL)) timer_u (
-        .btT(btT), .btU(btU), .rst(rst), .en(en),
+        .btT(btT), .btU(btU), .rst(rst), .en(en), .clk(clk),
         .qUnits(qUnits), .qTens(qTens),
-        .qOutUnits(qUnits), .qTens(qTens)
+        .qOutUnits(q0), .qOutTens(q1)
     );
 
     Deco decoDispUnits_u (
-        .S(qUnits), .DISP(disp0)
+        .S(q0), .DISP(disp0)
     );
 
     Deco decoDispTens_u (
-        .S(qTens), .DISP(disp1)
+        .S(q1), .DISP(disp1)
     );
 
     assign led = (qUnits == 4'b0000) & (qTens == 4'b0000);
+    assign qUnits = q0;
+    assign qTens = q1;
 endmodule
 
 module tiktok_tb();
-    localparam DELAY_DEF = 10ns;
-    localparam CYCLES = 5;
+    localparam CLK_PERIOD = 20ns;
+    localparam CYCLES = 4;
 
     // Inputs
     logic btU, btT, en, rst, clk;
@@ -38,58 +40,46 @@ module tiktok_tb();
         .led(led), .disp0(disp0), .disp1(disp1)
     );
 
-    task decreaserWait(input int times, input time delay = DELAY_DEF);
-        int i;
-        for (i = 0; i <= times * CYCLES; i++) begin
-            clk = 1'b1;
-            #delay;
-            clk = 1'b0;
-            #delay;
-            $display("Display Unidades %h", disp0);
-            $display("Display Decenas %h\n", disp1);
+    task automatic decreaserWait(input int times);
+        repeat (times * CYCLES) begin
+            @(posedge clk);
+            $display("Display Unidades %h, Decenas %h", disp0, disp1);
         end
     endtask
 
-    task buttonPress(ref logic btn, input int times, input time delay = DELAY_DEF);
-        int i;
-        for (i = 0; i < times; i++) begin
+    task automatic buttonPress(ref logic btn, input int times);
+        repeat (times) begin
+            @(negedge clk);
             btn = 1'b1;
-            clk = 1'b1;
-            #delay;
+            @(posedge clk);
+            @(negedge clk);
             btn = 1'b0;
-            clk = 1'b0;
-            #delay;
-            $display("Display Unidades %h", disp0);
-            $display("Display Decenas %h\n", disp1);
+            @(posedge clk);
+            $display("After press: Units=%h, Tens=%h", disp0, disp1);
         end
     endtask
+
+    initial clk = 1'b0;
+    always #(CLK_PERIOD / 2) clk = ~clk;
 
     initial begin
-        // Primero reset y se presiona una vez cada boton para tener 11
-        btU = 1'b0;
-        btT = 1'b0;
-        en = 1'b0;
-        rst = 1'b1;
-        clk = 1'b1;
-        #DELAY_DEF;
+        // Reset
+        btU = 0; btT = 0; en = 0; rst = 0; led = 0;
+        @(posedge clk);
+        rst = 1;
+        @(posedge clk);
+        rst = 0;
+        @(posedge clk);
 
-        btU = 1'b1;
-        clk = 1'b0;
-        #DELAY_DEF;
-        $display("Display Unidades %h", disp0);
-        $display("Display Decenas %h\n", disp1);
+        // Configure to 11
+        buttonPress(btU, 1);
+        buttonPress(btT, 1);
+        $display("After config: Units=%h, Tens=%h", disp0, disp1);
 
-        btU = 1'b0;
-        btT = 1'b1;
-        clk = 1'b1;
-        #DELAY_DEF;
-
-        btT = 1'b0;
-        clk = 1'b0;
-        #DELAY_DEF;
-        $display("Display Unidades %h", disp0);
-        $display("Display Decenas %h\n", disp1);
-
+        // Timer mode – count down 5 seconds
+        en = 1;
+        decreaserWait(5);
+        
         // Modo timer
         en = 1'b1;
         // Reduccion de 5 segundos

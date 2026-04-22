@@ -1,15 +1,17 @@
-module timer #(TOPVAL = 50_000_000) (
+module timer #(parameter TOPVAL = 50_000_000) (
     input logic [3:0] qUnits, qTens,
     input logic clk, en, rst, btU, btT,
     output logic [3:0] qOutUnits, qOutTens
 );
     logic [3:0] qDecUnits, qDecTens, qIncUnits, qIncTens;
-    logic d, clkdiv, btUPulse, btTPulse;
+    logic D, clkdiv;
+    logic btUPulse, btTPulse;
 
     cntdiv_n #(.TOPVALUE(TOPVAL)) clockDivider_u (
         .clk(clk), .clkout(clkdiv), .rst(rst)
     );
 
+    /*
     pulse getUnitsPulse (
         .clk(clk), .reset(rst), .d(btU),
         .pulse(btUPulse)
@@ -19,6 +21,7 @@ module timer #(TOPVAL = 50_000_000) (
         .clk(clk), .reset(rst), .d(btT),
         .pulse(btTPulse)
     );
+    */
 
     enum bit [3:0] {
         S0, S1, S2, S3, S4, S5, S6, S7, S8, S9,
@@ -30,8 +33,8 @@ module timer #(TOPVAL = 50_000_000) (
             qIncUnits <= S0;
             qIncTens <= S0;
         end else begin
-            if (btUPulse == 1'b1) begin
-                case (qUnits) begin
+            if (btU == 1'b1) begin
+                case (qUnits) 
                     S0: qIncUnits <= S1;
                     S1: qIncUnits <= S2;
                     S2: qIncUnits <= S3;
@@ -48,8 +51,8 @@ module timer #(TOPVAL = 50_000_000) (
                 qIncUnits <= qUnits;
             end
 
-            if (btTPulse == 1'b1) begin
-                case (qTens) begin
+            if (btT == 1'b1) begin
+                case (qTens)
                     S0: qIncTens <= S1;
                     S1: qIncTens <= S2;
                     S2: qIncTens <= S3;
@@ -73,7 +76,7 @@ module timer #(TOPVAL = 50_000_000) (
             qDecUnits <= S0;
             qDecTens <= S0;
         end else begin
-            case (qTens) begin
+            case (qTens)
                 S0: begin
                     qDecTens <= S0;
                     D <= 1'b1;
@@ -121,7 +124,7 @@ module timer #(TOPVAL = 50_000_000) (
             endcase
 
             if (D == 1'b0) begin
-                case (qUnits) begin
+                case (qUnits)
                     S0: qDecUnits <= S9;
                     S1: qDecUnits <= S0;
                     S2: qDecUnits <= S1;
@@ -135,7 +138,7 @@ module timer #(TOPVAL = 50_000_000) (
                     default: qDecUnits <= SErr;
                 endcase
             end else begin
-                case (qUnits) begin
+                case (qUnits)
                     S0: qDecUnits <= S0;
                     S1: qDecUnits <= S0;
                     S2: qDecUnits <= S1;

@@ -1,3 +1,25 @@
+/*
+module cntdiv_n #(parameter TOPVALUE = 50_000_000) (
+    input logic clk, rst,
+    output logic clkout
+);
+    logic [$clog2(TOPVALUE)-1:0] cnt;
+
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst == 1'b1) begin
+            cnt <= 0;
+            clkout <= 0;
+        end else begin
+            if (cnt == TOPVALUE - 1) begin
+                cnt <= 0;
+                clkout <= ~clkout;
+            end else begin
+                cnt <= cnt + 1;
+            end
+        end
+    end
+endmodule
+*/
 module cntdiv_n #(TOPVALUE = 50_000_000) (clk, rst, clkout);
 	input logic clk, rst;
 	output logic clkout;

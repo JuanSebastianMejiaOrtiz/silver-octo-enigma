@@ -1,6 +1,6 @@
 module Deco (
     input  logic [3:0] S,   
-    output logic [6:0] DISP,    
+    output logic [6:0] DISP
 );
     always_comb begin
         case (S)
