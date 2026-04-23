@@ -7,7 +7,6 @@ module tiktok #(parameter TOPVAL=50_000_000) (
 
     timer #(.TOPVAL(TOPVAL)) timer_u (
         .btT(btT), .btU(btU), .rst(rst), .en(en), .clk(clk),
-        .qUnits(qUnits), .qTens(qTens),
         .qOutUnits(qUnits), .qOutTens(qTens)
     );
 
@@ -62,8 +61,7 @@ module tiktok_tb();
 
     initial begin
         // Reset
-        btU = 0; btT = 0; en = 0; rst = 0; led = 0;
-        @(posedge clk);
+        btU = 0; btT = 0; en = 0; led = 0;
         rst = 1;
         @(posedge clk);
         rst = 0;
@@ -120,3 +118,35 @@ module tiktok_tb();
         $stop;
     end
 endmodule
+
+/*
+module tiktok #(parameter TOPVAL=50_000_000) (
+    input logic btU, btT, en, rst, clk,
+    output logic [6:0] disp0, disp1,
+    output logic led
+);
+    logic [3:0] qUnits, qTens;
+    logic [3:0] qOutUnits, qOutTens;
+
+    timer #(.TOPVAL(TOPVAL)) timer_u (
+        .btT(btT), .btU(btU), .rst(rst), .en(en), .clk(clk),
+        .qUnits(qUnits), .qTens(qTens),
+        .qOutUnits(qOutUnits), .qOutTens(qOutTens)
+    );
+
+    Deco decoDispUnits_u (
+        .S(qUnits), .DISP(disp0)
+    );
+
+    Deco decoDispTens_u (
+        .S(qTens), .DISP(disp1)
+    );
+
+    assign led = (qUnits == 4'b0000) & (qTens == 4'b0000);
+
+    always_ff @(posedge clk) begin
+        qUnits <= qOutUnits;
+        qTens <= qOutTens;
+    end
+endmodule
+*/

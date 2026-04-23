@@ -1,172 +1,158 @@
-module timer #(parameter TOPVAL = 50_000_000) (
-    input logic [3:0] qUnits, qTens,
+module timer #(
+    parameter TOPVAL = 50_000_000
+) (
     input logic clk, en, rst, btU, btT,
     output logic [3:0] qOutUnits, qOutTens
 );
-    logic [3:0] qDecUnits, qDecTens, qIncUnits, qIncTens;
-    logic D, clkdiv;
-    logic btUPulse, btTPulse;
-
-    cntdiv_n #(.TOPVALUE(TOPVAL)) clockDivider_u (
+    // Registros internos para la cuenta actual
+    logic [3:0] curUnits, curTens;
+    
+    // Señales de tick (1 ciclo cada TOPVAL ciclos de clk)
+    logic tick;
+    logic clkdiv;
+    
+    // Pulsos de los botones (flanco positivo)
+    logic btU_pulse, btT_pulse;
+    
+    // Divisor de reloj para generar el tick de 1 Hz
+    cntdiv_n #(.TOPVALUE(TOPVAL)) clockDivider (
         .clk(clk), .clkout(clkdiv), .rst(rst)
     );
-
-    /*
-    pulse getUnitsPulse (
-        .clk(clk), .reset(rst), .d(btU),
-        .pulse(btUPulse)
-    );
-
-    pulse getTensPulse (
-        .clk(clk), .reset(rst), .d(btT),
-        .pulse(btTPulse)
-    );
-    */
-
-    enum bit [3:0] {
-        S0, S1, S2, S3, S4, S5, S6, S7, S8, S9,
-        SErr = 4'b1111
-    } states;
-
-    always_ff @(posedge clk) begin
-        if (rst == 1'b1) begin
-            qIncUnits <= S0;
-            qIncTens <= S0;
-        end else begin
-            if (btU == 1'b1) begin
-                case (qUnits) 
-                    S0: qIncUnits <= S1;
-                    S1: qIncUnits <= S2;
-                    S2: qIncUnits <= S3;
-                    S3: qIncUnits <= S4;
-                    S4: qIncUnits <= S5;
-                    S5: qIncUnits <= S6;
-                    S6: qIncUnits <= S7;
-                    S7: qIncUnits <= S8;
-                    S8: qIncUnits <= S9;
-                    S9: qIncUnits <= S0;
-                    default: qIncUnits <= SErr;
-                endcase
-            end else begin
-                qIncUnits <= qUnits;
-            end
-
-            if (btT == 1'b1) begin
-                case (qTens)
-                    S0: qIncTens <= S1;
-                    S1: qIncTens <= S2;
-                    S2: qIncTens <= S3;
-                    S3: qIncTens <= S4;
-                    S4: qIncTens <= S5;
-                    S5: qIncTens <= S6;
-                    S6: qIncTens <= S7;
-                    S7: qIncTens <= S8;
-                    S8: qIncTens <= S9;
-                    S9: qIncTens <= S0;
-                    default: qIncTens <= SErr;
-                endcase
-            end else begin
-                qIncTens <= qTens;
-            end
-        end
+    
+    // Generar un pulso de un ciclo a partir de clkdiv (flanco positivo)
+    logic clkdiv_prev;
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) clkdiv_prev <= 1'b0;
+        else clkdiv_prev <= clkdiv;
     end
-
-    // TODO: Fix
-    // Arreglar esto para que reste como deberia de ser bien
-    // Esta restando las decenas a la vez y ademas esta de pronto haciendo mas
-    // de una resta a la vez (???)
-    // Mirar a ver cuando se reorganize
-    always_ff @(posedge clkdiv) begin
+    assign tick = clkdiv && !clkdiv_prev;
+    
+    // Detección de flanco para los botones usando pulse.sv
+    pulse pulseU (
+        .clk(clk),
+        .reset(rst),
+        .d(btU),
+        .pulse(btU_pulse)
+    );
+    
+    pulse pulseT (
+        .clk(clk),
+        .reset(rst),
+        .d(btT),
+        .pulse(btT_pulse)
+    );
+    
+    // Lógica principal de cuenta (actualización en cada flanco de clk)
+    always_ff @(posedge clk or posedge rst) begin
         if (rst) begin
-            qDecUnits <= S0;
-            qDecTens <= S0;
+            curUnits <= 4'd0;
+            curTens  <= 4'd0;
         end else begin
-            case (qTens)
-                S0: begin
-                    qDecTens <= S0;
-                    D <= 1'b1;
+            if (en) begin
+                // Modo temporizador: decrementar cuando tick = 1
+                if (tick) begin
+                    if (curUnits != 4'd0) begin
+                        curUnits <= curUnits - 4'd1;
+                    end else if (curTens != 4'd0) begin
+                        curTens  <= curTens - 4'd1;
+                        curUnits <= 4'd9;
+                    end
+                    // si ambos son 0, se queda en 0
                 end
-                S1: begin
-                    qDecTens <= S0;
-                    D <= 1'b0;
-                end
-                S2: begin
-                    qDecTens <= S1;
-                    D <= 1'b0;
-                end
-                S3: begin
-                    qDecTens <= S2;
-                    D <= 1'b0;
-                end
-                S4: begin
-                    qDecTens <= S3;
-                    D <= 1'b0;
-                end
-                S5: begin
-                    qDecTens <= S4;
-                    D <= 1'b0;
-                end
-                S6: begin
-                    qDecTens <= S5;
-                    D <= 1'b0;
-                end
-                S7: begin
-                    qDecTens <= S6;
-                    D <= 1'b0;
-                end
-                S8: begin
-                    qDecTens <= S7;
-                    D <= 1'b0;
-                end
-                S9: begin
-                    qDecTens <= S8;
-                    D <= 1'b0;
-                end
-                default: begin
-                    qDecTens <= SErr;
-                    D <= 1'b1;
-                end
-            endcase
-
-            if (D == 1'b0) begin
-                case (qUnits)
-                    S0: qDecUnits <= S9;
-                    S1: qDecUnits <= S0;
-                    S2: qDecUnits <= S1;
-                    S3: qDecUnits <= S2;
-                    S4: qDecUnits <= S3;
-                    S5: qDecUnits <= S4;
-                    S6: qDecUnits <= S5;
-                    S7: qDecUnits <= S6;
-                    S8: qDecUnits <= S7;
-                    S9: qDecUnits <= S8;
-                    default: qDecUnits <= SErr;
-                endcase
             end else begin
-                case (qUnits)
-                    S0: qDecUnits <= S0;
-                    S1: qDecUnits <= S0;
-                    S2: qDecUnits <= S1;
-                    S3: qDecUnits <= S2;
-                    S4: qDecUnits <= S3;
-                    S5: qDecUnits <= S4;
-                    S6: qDecUnits <= S5;
-                    S7: qDecUnits <= S6;
-                    S8: qDecUnits <= S7;
-                    S9: qDecUnits <= S8;
-                    default: qDecUnits <= SErr;
-                endcase
+                // Modo configuración: incrementar con los pulsos de los botones
+                if (btU_pulse) begin
+                    if (curUnits == 4'd9) curUnits <= 4'd0;
+                    else curUnits <= curUnits + 4'd1;
+                end
+                if (btT_pulse) begin
+                    if (curTens == 4'd9) curTens <= 4'd0;
+                    else curTens <= curTens + 4'd1;
+                end
             end
         end
     end
     
-    always_comb begin
-        if (en == 1'b1) begin
-            qOutUnits = qDecUnits;
-            qOutTens = qDecTens;
+    // Salidas directas
+    assign qOutUnits = curUnits;
+    assign qOutTens  = curTens;
+endmodule
+
+/*
+module timer #(
+    parameter TOPVAL = 50_000_000
+) (
+    input logic clk, en, rst, btU, btT,
+    output logic [3:0] qOutUnits, qOutTens
+);
+    // Registros internos para la cuenta actual
+    logic [3:0] curUnits, curTens;
+    
+    // Señales de tick (1 ciclo cada TOPVAL ciclos de clk)
+    logic tick;
+    logic clkdiv;
+    
+    // Divisor de reloj para generar el tick de 1 Hz
+    cntdiv_n #(.TOPVALUE(TOPVAL)) clockDivider (
+        .clk(clk), .clkout(clkdiv), .rst(rst)
+    );
+    
+    // Generar un pulso de un ciclo a partir de clkdiv (flanco positivo)
+    logic clkdiv_prev;
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) clkdiv_prev <= 1'b0;
+        else clkdiv_prev <= clkdiv;
+    end
+    assign tick = clkdiv && !clkdiv_prev;  // pulso de 1 ciclo
+    
+    // Detección de flanco para los botones (evita incrementos múltiples)
+    logic btU_prev, btT_prev;
+    logic btU_pulse, btT_pulse;
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            btU_prev <= 1'b0;
+            btT_prev <= 1'b0;
         end else begin
-            qOutUnits = qIncUnits;
-            qOutTens = qIncTens;
+            btU_prev <= btU;
+            btT_prev <= btT;
         end
     end
+    assign btU_pulse = btU && !btU_prev;
+    assign btT_pulse = btT && !btT_prev;
+    
+    // Lógica principal de cuenta (actualización en cada flanco de clk)
+    always_ff @(posedge clk or posedge rst) begin
+        if (rst) begin
+            curUnits <= 4'd0;
+            curTens  <= 4'd0;
+        end else begin
+            if (en) begin
+                // Modo temporizador: decrementar cuando tick = 1
+                if (tick) begin
+                    if (curUnits != 4'd0) begin
+                        curUnits <= curUnits - 4'd1;
+                    end else if (curTens != 4'd0) begin
+                        curTens  <= curTens - 4'd1;
+                        curUnits <= 4'd9;
+                    end
+                    // si ambos son 0, se queda en 0
+                end
+            end else begin
+                // Modo configuración: incrementar con botones
+                if (btU_pulse) begin
+                    if (curUnits == 4'd9) curUnits <= 4'd0;
+                    else curUnits <= curUnits + 4'd1;
+                end
+                if (btT_pulse) begin
+                    if (curTens == 4'd9) curTens <= 4'd0;
+                    else curTens <= curTens + 4'd1;
+                end
+            end
+        end
+    end
+    
+    // Salidas directas
+    assign qOutUnits = curUnits;
+    assign qOutTens  = curTens;
 endmodule
+*/
