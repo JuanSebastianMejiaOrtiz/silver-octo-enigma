@@ -64,8 +64,10 @@ module tiktok_tb();
         btU = 0; btT = 0; en = 0; led = 0;
         rst = 1;
         @(posedge clk);
-        rst = 0;
+        // rst = 0;
         @(posedge clk);
+		  rst = 0;
+		  @(posedge clk);
 
         // Configure to 11
         buttonPress(btU, 1);
